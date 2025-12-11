@@ -11,6 +11,7 @@ import AudioPlayer from '@/components/AudioPlayer';
 
 export default function Index() {
   const [file, setFile] = useState<File | null>(null);
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [processing, setProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [processed, setProcessed] = useState(false);
@@ -52,14 +53,20 @@ export default function Index() {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0]);
+      const selectedFile = e.target.files[0];
+      setFile(selectedFile);
+      const url = URL.createObjectURL(selectedFile);
+      setAudioUrl(url);
     }
   };
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      setFile(e.dataTransfer.files[0]);
+      const droppedFile = e.dataTransfer.files[0];
+      setFile(droppedFile);
+      const url = URL.createObjectURL(droppedFile);
+      setAudioUrl(url);
     }
   };
 
@@ -279,6 +286,7 @@ export default function Index() {
                           </div>
                           <AudioPlayer 
                             trackName={file?.name || "Оригинальный трек.mp3"}
+                            audioUrl={audioUrl || undefined}
                             color="primary"
                           />
                         </div>
@@ -291,6 +299,7 @@ export default function Index() {
                             </div>
                             <AudioPlayer 
                               trackName="Вокал.wav"
+                              audioUrl={audioUrl || undefined}
                               color="primary"
                             />
                           </div>
@@ -301,6 +310,7 @@ export default function Index() {
                             </div>
                             <AudioPlayer 
                               trackName="Барабаны.wav"
+                              audioUrl={audioUrl || undefined}
                               color="secondary"
                             />
                           </div>
@@ -311,6 +321,7 @@ export default function Index() {
                             </div>
                             <AudioPlayer 
                               trackName="Бас.wav"
+                              audioUrl={audioUrl || undefined}
                               color="accent"
                             />
                           </div>
@@ -321,6 +332,7 @@ export default function Index() {
                             </div>
                             <AudioPlayer 
                               trackName="Остальное.wav"
+                              audioUrl={audioUrl || undefined}
                               color="primary"
                             />
                           </div>
@@ -336,18 +348,21 @@ export default function Index() {
                         <TabsContent value="vocals">
                           <AudioPlayer 
                             trackName="Вокал.wav"
+                            audioUrl={audioUrl || undefined}
                             color="primary"
                           />
                         </TabsContent>
                         <TabsContent value="drums">
                           <AudioPlayer 
                             trackName="Барабаны.wav"
+                            audioUrl={audioUrl || undefined}
                             color="secondary"
                           />
                         </TabsContent>
                         <TabsContent value="bass">
                           <AudioPlayer 
                             trackName="Бас.wav"
+                            audioUrl={audioUrl || undefined}
                             color="accent"
                           />
                         </TabsContent>
@@ -356,7 +371,11 @@ export default function Index() {
 
                     <Button
                       onClick={() => {
+                        if (audioUrl) {
+                          URL.revokeObjectURL(audioUrl);
+                        }
                         setFile(null);
+                        setAudioUrl(null);
                         setProcessed(false);
                         setProgress(0);
                         setCompareMode(false);
