@@ -172,37 +172,11 @@ export default function AudioPlayer({ trackName, audioUrl, color = 'primary' }: 
       </div>
 
       <div className="flex gap-2">
-        <Button 
-          className="flex-1" 
-          variant="outline"
-          onClick={() => {
-            if (audioUrl) {
-              const a = document.createElement('a');
-              a.href = audioUrl;
-              a.download = trackName.replace('.wav', '.mp3');
-              document.body.appendChild(a);
-              a.click();
-              document.body.removeChild(a);
-            }
-          }}
-        >
+        <Button className="flex-1" variant="outline">
           <Icon name="Download" size={18} className="mr-2" />
           Скачать MP3
         </Button>
-        <Button 
-          className="flex-1" 
-          variant="outline"
-          onClick={() => {
-            if (audioUrl) {
-              const a = document.createElement('a');
-              a.href = audioUrl;
-              a.download = trackName;
-              document.body.appendChild(a);
-              a.click();
-              document.body.removeChild(a);
-            }
-          }}
-        >
+        <Button className="flex-1" variant="outline">
           <Icon name="Download" size={18} className="mr-2" />
           Скачать WAV
         </Button>

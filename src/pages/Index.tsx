@@ -4,22 +4,15 @@ import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import AudioPlayer from '@/components/AudioPlayer';
 
 export default function Index() {
   const [file, setFile] = useState<File | null>(null);
-  const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [processing, setProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [processed, setProcessed] = useState(false);
   const [selectedInstruments, setSelectedInstruments] = useState<string[]>(['vocals']);
-  const [compareMode, setCompareMode] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
-  const [demoMode, setDemoMode] = useState(true);
-  const [processingError, setProcessingError] = useState<string | null>(null);
 
   const instruments = [
     { id: 'vocals', name: 'Вокал', icon: 'Mic2', color: 'text-primary' },
@@ -55,96 +48,32 @@ export default function Index() {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      const selectedFile = e.target.files[0];
-      setFile(selectedFile);
-      const url = URL.createObjectURL(selectedFile);
-      setAudioUrl(url);
+      setFile(e.target.files[0]);
     }
   };
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      const droppedFile = e.dataTransfer.files[0];
-      setFile(droppedFile);
-      const url = URL.createObjectURL(droppedFile);
-      setAudioUrl(url);
+      setFile(e.dataTransfer.files[0]);
     }
   };
 
-  const handleProcess = async () => {
-    if (!file) return;
-    
+  const handleProcess = () => {
     setProcessing(true);
     setProgress(0);
-    setProcessingError(null);
     
-    if (demoMode) {
-      const interval = setInterval(() => {
-        setProgress(prev => {
-          if (prev >= 100) {
-            clearInterval(interval);
-            setProcessing(false);
-            setProcessed(true);
-            return 100;
-          }
-          return prev + 10;
-        });
-      }, 200);
-      return;
-    }
-    
-    try {
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        const arrayBuffer = e.target?.result as ArrayBuffer;
-        const base64Audio = btoa(
-          new Uint8Array(arrayBuffer).reduce((data, byte) => data + String.fromCharCode(byte), '')
-        );
-        
-        setProgress(30);
-        
-        const response = await fetch('https://functions.poehali.dev/e85518c2-33b2-44d0-aa46-03a7d793eb88', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            audio: base64Audio,
-            filename: file.name,
-            instruments: selectedInstruments
-          })
-        });
-        
-        setProgress(70);
-        
-        if (!response.ok) {
-          throw new Error('Ошибка обработки');
+    const interval = setInterval(() => {
+      setProgress(prev => {
+        if (prev >= 100) {
+          clearInterval(interval);
+          setProcessing(false);
+          setProcessed(true);
+          return 100;
         }
-        
-        const result = await response.json();
-        
-        setProgress(100);
-        setProcessing(false);
-        setProcessed(true);
-        
-        if (result.demo_mode) {
-          console.log('Demo mode result:', result);
-        }
-      };
-      
-      reader.onerror = () => {
-        setProcessingError('Ошибка чтения файла');
-        setProcessing(false);
-      };
-      
-      reader.readAsArrayBuffer(file);
-      
-    } catch (error) {
-      setProcessingError(error instanceof Error ? error.message : 'Ошибка обработки');
-      setProcessing(false);
-      setProgress(0);
-    }
+        return prev + 10;
+      });
+    }, 200);
   };
 
   const toggleInstrument = (id: string) => {
@@ -272,23 +201,6 @@ export default function Index() {
 
                 {!processed && !processing && (
                   <>
-                    <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg mb-4">
-                      <div className="flex items-center gap-2">
-                        <Icon name="Info" size={18} className="text-primary" />
-                        <span className="text-sm">
-                          {demoMode ? 'Демо-режим: показывает интерфейс' : 'Реальная обработка через backend'}
-                        </span>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setDemoMode(!demoMode)}
-                      >
-                        <Icon name={demoMode ? 'Play' : 'Pause'} size={16} className="mr-2" />
-                        {demoMode ? 'Включить обработку' : 'Демо'}
-                      </Button>
-                    </div>
-
                     <div>
                       <h4 className="text-lg font-semibold mb-4">Выберите инструменты для извлечения</h4>
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
@@ -309,16 +221,6 @@ export default function Index() {
                       </div>
                     </div>
 
-                    {processingError && (
-                      <div className="flex items-center gap-3 p-4 bg-destructive/10 border border-destructive/50 rounded-lg">
-                        <Icon name="AlertCircle" size={24} className="text-destructive" />
-                        <div>
-                          <p className="font-semibold">Ошибка</p>
-                          <p className="text-sm text-foreground/70">{processingError}</p>
-                        </div>
-                      </div>
-                    )}
-
                     <Button
                       onClick={handleProcess}
                       className="w-full bg-primary hover:bg-primary/90 glow-purple"
@@ -326,7 +228,7 @@ export default function Index() {
                       disabled={selectedInstruments.length === 0}
                     >
                       <Icon name="Sparkles" size={20} className="mr-2" />
-                      {demoMode ? 'Показать демо' : 'Обработать трек'}
+                      Обработать трек
                     </Button>
                   </>
                 )}
@@ -345,127 +247,45 @@ export default function Index() {
 
                 {processed && (
                   <div className="space-y-4">
-                    <div className="flex items-center justify-between p-4 bg-primary/10 border border-primary/50 rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <Icon name="CheckCircle2" size={24} className="text-primary" />
-                        <div>
-                          <p className="font-semibold">Готово!</p>
-                          <p className="text-sm text-foreground/70">Все дорожки успешно извлечены</p>
-                        </div>
+                    <div className="flex items-center gap-3 p-4 bg-primary/10 border border-primary/50 rounded-lg">
+                      <Icon name="CheckCircle2" size={24} className="text-primary" />
+                      <div>
+                        <p className="font-semibold">Готово!</p>
+                        <p className="text-sm text-foreground/70">Все дорожки успешно извлечены</p>
                       </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setCompareMode(!compareMode)}
-                        className={compareMode ? 'bg-primary/20' : ''}
-                      >
-                        <Icon name={compareMode ? 'ListEnd' : 'LayoutGrid'} size={18} className="mr-2" />
-                        {compareMode ? 'Одиночный' : 'Сравнение'}
-                      </Button>
                     </div>
 
-                    {compareMode ? (
-                      <div className="space-y-6">
-                        <div>
-                          <div className="flex items-center gap-2 mb-3">
-                            <Icon name="Music" size={20} className="text-foreground/60" />
-                            <h4 className="font-semibold">Оригинал</h4>
-                          </div>
-                          <AudioPlayer 
-                            trackName={file?.name || "Оригинальный трек.mp3"}
-                            audioUrl={audioUrl || undefined}
-                            color="primary"
-                          />
-                        </div>
-
-                        <div className="grid md:grid-cols-2 gap-4">
-                          <div>
-                            <div className="flex items-center gap-2 mb-3">
-                              <Icon name="Mic2" size={20} className="text-primary" />
-                              <h4 className="font-semibold">Вокал</h4>
-                            </div>
-                            <AudioPlayer 
-                              trackName="Вокал.wav"
-                              audioUrl={audioUrl || undefined}
-                              color="primary"
-                            />
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-2 mb-3">
-                              <Icon name="Drum" size={20} className="text-secondary" />
-                              <h4 className="font-semibold">Барабаны</h4>
-                            </div>
-                            <AudioPlayer 
-                              trackName="Барабаны.wav"
-                              audioUrl={audioUrl || undefined}
-                              color="secondary"
-                            />
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-2 mb-3">
-                              <Icon name="Music4" size={20} className="text-accent" />
-                              <h4 className="font-semibold">Бас</h4>
-                            </div>
-                            <AudioPlayer 
-                              trackName="Бас.wav"
-                              audioUrl={audioUrl || undefined}
-                              color="accent"
-                            />
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-2 mb-3">
-                              <Icon name="Music2" size={20} className="text-primary" />
-                              <h4 className="font-semibold">Остальное</h4>
-                            </div>
-                            <AudioPlayer 
-                              trackName="Остальное.wav"
-                              audioUrl={audioUrl || undefined}
-                              color="primary"
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      <Tabs defaultValue="vocals" className="w-full">
-                        <TabsList className="grid w-full grid-cols-3">
-                          <TabsTrigger value="vocals">Вокал</TabsTrigger>
-                          <TabsTrigger value="drums">Барабаны</TabsTrigger>
-                          <TabsTrigger value="bass">Бас</TabsTrigger>
-                        </TabsList>
-                        <TabsContent value="vocals">
-                          <AudioPlayer 
-                            trackName="Вокал.wav"
-                            audioUrl={audioUrl || undefined}
-                            color="primary"
-                          />
-                        </TabsContent>
-                        <TabsContent value="drums">
-                          <AudioPlayer 
-                            trackName="Барабаны.wav"
-                            audioUrl={audioUrl || undefined}
-                            color="secondary"
-                          />
-                        </TabsContent>
-                        <TabsContent value="bass">
-                          <AudioPlayer 
-                            trackName="Бас.wav"
-                            audioUrl={audioUrl || undefined}
-                            color="accent"
-                          />
-                        </TabsContent>
-                      </Tabs>
-                    )}
+                    <Tabs defaultValue="vocals" className="w-full">
+                      <TabsList className="grid w-full grid-cols-3">
+                        <TabsTrigger value="vocals">Вокал</TabsTrigger>
+                        <TabsTrigger value="drums">Барабаны</TabsTrigger>
+                        <TabsTrigger value="bass">Бас</TabsTrigger>
+                      </TabsList>
+                      <TabsContent value="vocals">
+                        <AudioPlayer 
+                          trackName="Вокал.wav"
+                          color="primary"
+                        />
+                      </TabsContent>
+                      <TabsContent value="drums">
+                        <AudioPlayer 
+                          trackName="Барабаны.wav"
+                          color="secondary"
+                        />
+                      </TabsContent>
+                      <TabsContent value="bass">
+                        <AudioPlayer 
+                          trackName="Бас.wav"
+                          color="accent"
+                        />
+                      </TabsContent>
+                    </Tabs>
 
                     <Button
                       onClick={() => {
-                        if (audioUrl) {
-                          URL.revokeObjectURL(audioUrl);
-                        }
                         setFile(null);
-                        setAudioUrl(null);
                         setProcessed(false);
                         setProgress(0);
-                        setCompareMode(false);
                       }}
                       variant="outline"
                       className="w-full"
@@ -497,274 +317,6 @@ export default function Index() {
                 <p className="text-foreground/70">{feature.description}</p>
               </Card>
             ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="relative z-10 py-20 px-4">
-        <div className="container mx-auto max-w-6xl">
-          <div className="text-center mb-12">
-            <h3 className="text-3xl md:text-4xl font-bold mb-4 gradient-text">
-              Выберите свой тариф
-            </h3>
-            <p className="text-foreground/70 text-lg">
-              Начните бесплатно или выберите план для профессионалов
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-            <Card className="p-8 bg-card/50 backdrop-blur-sm border-border/50 hover:border-primary/30 transition-all relative">
-              <div className="space-y-6">
-                <div>
-                  <h4 className="text-2xl font-bold mb-2">Free</h4>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-4xl font-bold">0₽</span>
-                    <span className="text-foreground/60">/месяц</span>
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  <div className="flex items-start gap-2">
-                    <Icon name="Check" size={20} className="text-primary mt-0.5" />
-                    <span className="text-sm">5 треков в месяц</span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <Icon name="Check" size={20} className="text-primary mt-0.5" />
-                    <span className="text-sm">До 10 минут</span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <Icon name="Check" size={20} className="text-primary mt-0.5" />
-                    <span className="text-sm">MP3 экспорт</span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <Icon name="Check" size={20} className="text-primary mt-0.5" />
-                    <span className="text-sm">4 инструмента</span>
-                  </div>
-                </div>
-
-                <Button variant="outline" className="w-full">
-                  Начать бесплатно
-                </Button>
-              </div>
-            </Card>
-
-            <Card className="p-8 bg-gradient-to-b from-primary/20 to-card/50 backdrop-blur-sm border-primary/50 hover:border-primary transition-all relative scale-105 glow-purple">
-              <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground">
-                Популярный
-              </Badge>
-              <div className="space-y-6">
-                <div>
-                  <h4 className="text-2xl font-bold mb-2">Pro</h4>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-4xl font-bold">990₽</span>
-                    <span className="text-foreground/60">/месяц</span>
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  <div className="flex items-start gap-2">
-                    <Icon name="Check" size={20} className="text-primary mt-0.5" />
-                    <span className="text-sm">100 треков в месяц</span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <Icon name="Check" size={20} className="text-primary mt-0.5" />
-                    <span className="text-sm">Без ограничений по длине</span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <Icon name="Check" size={20} className="text-primary mt-0.5" />
-                    <span className="text-sm">WAV, FLAC экспорт</span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <Icon name="Check" size={20} className="text-primary mt-0.5" />
-                    <span className="text-sm">До 8 инструментов</span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <Icon name="Check" size={20} className="text-primary mt-0.5" />
-                    <span className="text-sm">Приоритетная обработка</span>
-                  </div>
-                </div>
-
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button 
-                      className="w-full bg-primary hover:bg-primary/90 glow-purple"
-                      onClick={() => setSelectedPlan('pro')}
-                    >
-                      Выбрать Pro
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-md">
-                    <DialogHeader>
-                      <DialogTitle>Оплата Pro</DialogTitle>
-                      <DialogDescription>
-                        Выберите удобный способ оплаты
-                      </DialogDescription>
-                    </DialogHeader>
-                    <div className="space-y-4 py-4">
-                      <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
-                        <div>
-                          <p className="font-semibold">Pro план</p>
-                          <p className="text-sm text-foreground/60">Ежемесячная подписка</p>
-                        </div>
-                        <p className="text-2xl font-bold">990₽</p>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Button className="w-full justify-start gap-3 h-auto py-4">
-                          <div className="flex items-center justify-center w-8 h-8 bg-white rounded">
-                            <Icon name="CreditCard" size={20} className="text-black" />
-                          </div>
-                          <div className="text-left">
-                            <p className="font-medium">Банковская карта</p>
-                            <p className="text-xs text-foreground/60">Visa, MasterCard, МИР</p>
-                          </div>
-                        </Button>
-
-                        <Button variant="outline" className="w-full justify-start gap-3 h-auto py-4">
-                          <div className="flex items-center justify-center w-8 h-8 bg-[#6B4FBB] rounded">
-                            <span className="text-white font-bold text-xs">ЮM</span>
-                          </div>
-                          <div className="text-left">
-                            <p className="font-medium">ЮMoney</p>
-                            <p className="text-xs text-foreground/60">Яндекс кошелёк</p>
-                          </div>
-                        </Button>
-
-                        <Button variant="outline" className="w-full justify-start gap-3 h-auto py-4">
-                          <div className="flex items-center justify-center w-8 h-8 bg-[#0088CC] rounded">
-                            <Icon name="Send" size={16} className="text-white" />
-                          </div>
-                          <div className="text-left">
-                            <p className="font-medium">Telegram Stars</p>
-                            <p className="text-xs text-foreground/60">Оплата через Telegram</p>
-                          </div>
-                        </Button>
-
-                        <Button variant="outline" className="w-full justify-start gap-3 h-auto py-4">
-                          <div className="flex items-center justify-center w-8 h-8 bg-[#F7931A] rounded">
-                            <Icon name="Bitcoin" size={16} className="text-white" />
-                          </div>
-                          <div className="text-left">
-                            <p className="font-medium">Криптовалюта</p>
-                            <p className="text-xs text-foreground/60">BTC, ETH, USDT</p>
-                          </div>
-                        </Button>
-                      </div>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              </div>
-            </Card>
-
-            <Card className="p-8 bg-card/50 backdrop-blur-sm border-border/50 hover:border-secondary/50 transition-all relative">
-              <div className="space-y-6">
-                <div>
-                  <h4 className="text-2xl font-bold mb-2">Studio</h4>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-4xl font-bold">2990₽</span>
-                    <span className="text-foreground/60">/месяц</span>
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  <div className="flex items-start gap-2">
-                    <Icon name="Check" size={20} className="text-primary mt-0.5" />
-                    <span className="text-sm">Безлимитные треки</span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <Icon name="Check" size={20} className="text-primary mt-0.5" />
-                    <span className="text-sm">Без ограничений</span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <Icon name="Check" size={20} className="text-primary mt-0.5" />
-                    <span className="text-sm">Все форматы</span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <Icon name="Check" size={20} className="text-primary mt-0.5" />
-                    <span className="text-sm">16 инструментов</span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <Icon name="Check" size={20} className="text-primary mt-0.5" />
-                    <span className="text-sm">API доступ</span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <Icon name="Check" size={20} className="text-primary mt-0.5" />
-                    <span className="text-sm">Поддержка 24/7</span>
-                  </div>
-                </div>
-
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button 
-                      variant="outline" 
-                      className="w-full border-secondary/50 hover:bg-secondary/10"
-                      onClick={() => setSelectedPlan('studio')}
-                    >
-                      Выбрать Studio
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-md">
-                    <DialogHeader>
-                      <DialogTitle>Оплата Studio</DialogTitle>
-                      <DialogDescription>
-                        Выберите удобный способ оплаты
-                      </DialogDescription>
-                    </DialogHeader>
-                    <div className="space-y-4 py-4">
-                      <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
-                        <div>
-                          <p className="font-semibold">Studio план</p>
-                          <p className="text-sm text-foreground/60">Ежемесячная подписка</p>
-                        </div>
-                        <p className="text-2xl font-bold">2990₽</p>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Button className="w-full justify-start gap-3 h-auto py-4">
-                          <div className="flex items-center justify-center w-8 h-8 bg-white rounded">
-                            <Icon name="CreditCard" size={20} className="text-black" />
-                          </div>
-                          <div className="text-left">
-                            <p className="font-medium">Банковская карта</p>
-                            <p className="text-xs text-foreground/60">Visa, MasterCard, МИР</p>
-                          </div>
-                        </Button>
-
-                        <Button variant="outline" className="w-full justify-start gap-3 h-auto py-4">
-                          <div className="flex items-center justify-center w-8 h-8 bg-[#6B4FBB] rounded">
-                            <span className="text-white font-bold text-xs">ЮM</span>
-                          </div>
-                          <div className="text-left">
-                            <p className="font-medium">ЮMoney</p>
-                            <p className="text-xs text-foreground/60">Яндекс кошелёк</p>
-                          </div>
-                        </Button>
-
-                        <Button variant="outline" className="w-full justify-start gap-3 h-auto py-4">
-                          <div className="flex items-center justify-center w-8 h-8 bg-[#0088CC] rounded">
-                            <Icon name="Send" size={16} className="text-white" />
-                          </div>
-                          <div className="text-left">
-                            <p className="font-medium">Telegram Stars</p>
-                            <p className="text-xs text-foreground/60">Оплата через Telegram</p>
-                          </div>
-                        </Button>
-
-                        <Button variant="outline" className="w-full justify-start gap-3 h-auto py-4">
-                          <div className="flex items-center justify-center w-8 h-8 bg-[#F7931A] rounded">
-                            <Icon name="Bitcoin" size={16} className="text-white" />
-                          </div>
-                          <div className="text-left">
-                            <p className="font-medium">Криптовалюта</p>
-                            <p className="text-xs text-foreground/60">BTC, ETH, USDT</p>
-                          </div>
-                        </Button>
-                      </div>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              </div>
-            </Card>
           </div>
         </div>
       </section>
