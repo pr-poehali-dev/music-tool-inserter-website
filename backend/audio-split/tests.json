@@ -1,0 +1,45 @@
+{
+  "tests": [
+    {
+      "name": "Test audio processing with demo data",
+      "method": "POST",
+      "path": "/",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "audio": "SGVsbG8gV29ybGQ=",
+        "filename": "test.mp3",
+        "instruments": ["vocals", "drums", "bass"]
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true,
+        "demo_mode": true
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Test missing audio data",
+      "method": "POST",
+      "path": "/",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "filename": "test.mp3"
+      },
+      "expectedStatus": 400,
+      "expectedBody": {
+        "error": "string"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Test OPTIONS for CORS",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    }
+  ]
+}

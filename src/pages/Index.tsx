@@ -18,6 +18,8 @@ export default function Index() {
   const [selectedInstruments, setSelectedInstruments] = useState<string[]>(['vocals']);
   const [compareMode, setCompareMode] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
+  const [demoMode, setDemoMode] = useState(true);
+  const [processingError, setProcessingError] = useState<string | null>(null);
 
   const instruments = [
     { id: 'vocals', name: 'Вокал', icon: 'Mic2', color: 'text-primary' },
@@ -70,21 +72,79 @@ export default function Index() {
     }
   };
 
-  const handleProcess = () => {
+  const handleProcess = async () => {
+    if (!file) return;
+    
     setProcessing(true);
     setProgress(0);
+    setProcessingError(null);
     
-    const interval = setInterval(() => {
-      setProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setProcessing(false);
-          setProcessed(true);
-          return 100;
+    if (demoMode) {
+      const interval = setInterval(() => {
+        setProgress(prev => {
+          if (prev >= 100) {
+            clearInterval(interval);
+            setProcessing(false);
+            setProcessed(true);
+            return 100;
+          }
+          return prev + 10;
+        });
+      }, 200);
+      return;
+    }
+    
+    try {
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const arrayBuffer = e.target?.result as ArrayBuffer;
+        const base64Audio = btoa(
+          new Uint8Array(arrayBuffer).reduce((data, byte) => data + String.fromCharCode(byte), '')
+        );
+        
+        setProgress(30);
+        
+        const response = await fetch('https://functions.poehali.dev/e85518c2-33b2-44d0-aa46-03a7d793eb88', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            audio: base64Audio,
+            filename: file.name,
+            instruments: selectedInstruments
+          })
+        });
+        
+        setProgress(70);
+        
+        if (!response.ok) {
+          throw new Error('Ошибка обработки');
         }
-        return prev + 10;
-      });
-    }, 200);
+        
+        const result = await response.json();
+        
+        setProgress(100);
+        setProcessing(false);
+        setProcessed(true);
+        
+        if (result.demo_mode) {
+          console.log('Demo mode result:', result);
+        }
+      };
+      
+      reader.onerror = () => {
+        setProcessingError('Ошибка чтения файла');
+        setProcessing(false);
+      };
+      
+      reader.readAsArrayBuffer(file);
+      
+    } catch (error) {
+      setProcessingError(error instanceof Error ? error.message : 'Ошибка обработки');
+      setProcessing(false);
+      setProgress(0);
+    }
   };
 
   const toggleInstrument = (id: string) => {
@@ -212,6 +272,23 @@ export default function Index() {
 
                 {!processed && !processing && (
                   <>
+                    <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg mb-4">
+                      <div className="flex items-center gap-2">
+                        <Icon name="Info" size={18} className="text-primary" />
+                        <span className="text-sm">
+                          {demoMode ? 'Демо-режим: показывает интерфейс' : 'Реальная обработка через backend'}
+                        </span>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setDemoMode(!demoMode)}
+                      >
+                        <Icon name={demoMode ? 'Play' : 'Pause'} size={16} className="mr-2" />
+                        {demoMode ? 'Включить обработку' : 'Демо'}
+                      </Button>
+                    </div>
+
                     <div>
                       <h4 className="text-lg font-semibold mb-4">Выберите инструменты для извлечения</h4>
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
@@ -232,6 +309,16 @@ export default function Index() {
                       </div>
                     </div>
 
+                    {processingError && (
+                      <div className="flex items-center gap-3 p-4 bg-destructive/10 border border-destructive/50 rounded-lg">
+                        <Icon name="AlertCircle" size={24} className="text-destructive" />
+                        <div>
+                          <p className="font-semibold">Ошибка</p>
+                          <p className="text-sm text-foreground/70">{processingError}</p>
+                        </div>
+                      </div>
+                    )}
+
                     <Button
                       onClick={handleProcess}
                       className="w-full bg-primary hover:bg-primary/90 glow-purple"
@@ -239,7 +326,7 @@ export default function Index() {
                       disabled={selectedInstruments.length === 0}
                     >
                       <Icon name="Sparkles" size={20} className="mr-2" />
-                      Обработать трек
+                      {demoMode ? 'Показать демо' : 'Обработать трек'}
                     </Button>
                   </>
                 )}
