@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import Icon from '@/components/ui/icon';
+import AudioPlayer from '@/components/AudioPlayer';
 
 export default function Index() {
   const [file, setFile] = useState<File | null>(null);
@@ -260,32 +261,24 @@ export default function Index() {
                         <TabsTrigger value="drums">Барабаны</TabsTrigger>
                         <TabsTrigger value="bass">Бас</TabsTrigger>
                       </TabsList>
-                      {['vocals', 'drums', 'bass'].map(type => (
-                        <TabsContent key={type} value={type} className="space-y-3">
-                          <div className="p-4 bg-muted/50 rounded-lg">
-                            <div className="flex items-center justify-between mb-3">
-                              <div className="flex items-center gap-2">
-                                <Icon name="Play" size={20} className="text-primary" />
-                                <span className="font-medium capitalize">{type === 'vocals' ? 'Вокал' : type === 'drums' ? 'Барабаны' : 'Бас'}.wav</span>
-                              </div>
-                              <span className="text-sm text-foreground/60">3:24</span>
-                            </div>
-                            <div className="h-16 flex items-end gap-1">
-                              {[...Array(50)].map((_, i) => (
-                                <div
-                                  key={i}
-                                  className="flex-1 bg-primary/60 rounded-sm"
-                                  style={{ height: `${Math.random() * 100}%` }}
-                                />
-                              ))}
-                            </div>
-                          </div>
-                          <Button className="w-full" variant="outline">
-                            <Icon name="Download" size={20} className="mr-2" />
-                            Скачать дорожку
-                          </Button>
-                        </TabsContent>
-                      ))}
+                      <TabsContent value="vocals">
+                        <AudioPlayer 
+                          trackName="Вокал.wav"
+                          color="primary"
+                        />
+                      </TabsContent>
+                      <TabsContent value="drums">
+                        <AudioPlayer 
+                          trackName="Барабаны.wav"
+                          color="secondary"
+                        />
+                      </TabsContent>
+                      <TabsContent value="bass">
+                        <AudioPlayer 
+                          trackName="Бас.wav"
+                          color="accent"
+                        />
+                      </TabsContent>
                     </Tabs>
 
                     <Button
