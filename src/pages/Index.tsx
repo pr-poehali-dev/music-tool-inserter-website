@@ -13,6 +13,7 @@ export default function Index() {
   const [progress, setProgress] = useState(0);
   const [processed, setProcessed] = useState(false);
   const [selectedInstruments, setSelectedInstruments] = useState<string[]>(['vocals']);
+  const [compareMode, setCompareMode] = useState(false);
 
   const instruments = [
     { id: 'vocals', name: 'Вокал', icon: 'Mic2', color: 'text-primary' },
@@ -247,45 +248,115 @@ export default function Index() {
 
                 {processed && (
                   <div className="space-y-4">
-                    <div className="flex items-center gap-3 p-4 bg-primary/10 border border-primary/50 rounded-lg">
-                      <Icon name="CheckCircle2" size={24} className="text-primary" />
-                      <div>
-                        <p className="font-semibold">Готово!</p>
-                        <p className="text-sm text-foreground/70">Все дорожки успешно извлечены</p>
+                    <div className="flex items-center justify-between p-4 bg-primary/10 border border-primary/50 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <Icon name="CheckCircle2" size={24} className="text-primary" />
+                        <div>
+                          <p className="font-semibold">Готово!</p>
+                          <p className="text-sm text-foreground/70">Все дорожки успешно извлечены</p>
+                        </div>
                       </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCompareMode(!compareMode)}
+                        className={compareMode ? 'bg-primary/20' : ''}
+                      >
+                        <Icon name={compareMode ? 'ListEnd' : 'LayoutGrid'} size={18} className="mr-2" />
+                        {compareMode ? 'Одиночный' : 'Сравнение'}
+                      </Button>
                     </div>
 
-                    <Tabs defaultValue="vocals" className="w-full">
-                      <TabsList className="grid w-full grid-cols-3">
-                        <TabsTrigger value="vocals">Вокал</TabsTrigger>
-                        <TabsTrigger value="drums">Барабаны</TabsTrigger>
-                        <TabsTrigger value="bass">Бас</TabsTrigger>
-                      </TabsList>
-                      <TabsContent value="vocals">
-                        <AudioPlayer 
-                          trackName="Вокал.wav"
-                          color="primary"
-                        />
-                      </TabsContent>
-                      <TabsContent value="drums">
-                        <AudioPlayer 
-                          trackName="Барабаны.wav"
-                          color="secondary"
-                        />
-                      </TabsContent>
-                      <TabsContent value="bass">
-                        <AudioPlayer 
-                          trackName="Бас.wav"
-                          color="accent"
-                        />
-                      </TabsContent>
-                    </Tabs>
+                    {compareMode ? (
+                      <div className="space-y-6">
+                        <div>
+                          <div className="flex items-center gap-2 mb-3">
+                            <Icon name="Music" size={20} className="text-foreground/60" />
+                            <h4 className="font-semibold">Оригинал</h4>
+                          </div>
+                          <AudioPlayer 
+                            trackName={file?.name || "Оригинальный трек.mp3"}
+                            color="primary"
+                          />
+                        </div>
+
+                        <div className="grid md:grid-cols-2 gap-4">
+                          <div>
+                            <div className="flex items-center gap-2 mb-3">
+                              <Icon name="Mic2" size={20} className="text-primary" />
+                              <h4 className="font-semibold">Вокал</h4>
+                            </div>
+                            <AudioPlayer 
+                              trackName="Вокал.wav"
+                              color="primary"
+                            />
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2 mb-3">
+                              <Icon name="Drum" size={20} className="text-secondary" />
+                              <h4 className="font-semibold">Барабаны</h4>
+                            </div>
+                            <AudioPlayer 
+                              trackName="Барабаны.wav"
+                              color="secondary"
+                            />
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2 mb-3">
+                              <Icon name="Music4" size={20} className="text-accent" />
+                              <h4 className="font-semibold">Бас</h4>
+                            </div>
+                            <AudioPlayer 
+                              trackName="Бас.wav"
+                              color="accent"
+                            />
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2 mb-3">
+                              <Icon name="Music2" size={20} className="text-primary" />
+                              <h4 className="font-semibold">Остальное</h4>
+                            </div>
+                            <AudioPlayer 
+                              trackName="Остальное.wav"
+                              color="primary"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <Tabs defaultValue="vocals" className="w-full">
+                        <TabsList className="grid w-full grid-cols-3">
+                          <TabsTrigger value="vocals">Вокал</TabsTrigger>
+                          <TabsTrigger value="drums">Барабаны</TabsTrigger>
+                          <TabsTrigger value="bass">Бас</TabsTrigger>
+                        </TabsList>
+                        <TabsContent value="vocals">
+                          <AudioPlayer 
+                            trackName="Вокал.wav"
+                            color="primary"
+                          />
+                        </TabsContent>
+                        <TabsContent value="drums">
+                          <AudioPlayer 
+                            trackName="Барабаны.wav"
+                            color="secondary"
+                          />
+                        </TabsContent>
+                        <TabsContent value="bass">
+                          <AudioPlayer 
+                            trackName="Бас.wav"
+                            color="accent"
+                          />
+                        </TabsContent>
+                      </Tabs>
+                    )}
 
                     <Button
                       onClick={() => {
                         setFile(null);
                         setProcessed(false);
                         setProgress(0);
+                        setCompareMode(false);
                       }}
                       variant="outline"
                       className="w-full"
