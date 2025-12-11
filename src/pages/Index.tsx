@@ -4,6 +4,8 @@ import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import AudioPlayer from '@/components/AudioPlayer';
 
@@ -14,6 +16,7 @@ export default function Index() {
   const [processed, setProcessed] = useState(false);
   const [selectedInstruments, setSelectedInstruments] = useState<string[]>(['vocals']);
   const [compareMode, setCompareMode] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
 
   const instruments = [
     { id: 'vocals', name: 'Вокал', icon: 'Mic2', color: 'text-primary' },
@@ -388,6 +391,274 @@ export default function Index() {
                 <p className="text-foreground/70">{feature.description}</p>
               </Card>
             ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="relative z-10 py-20 px-4">
+        <div className="container mx-auto max-w-6xl">
+          <div className="text-center mb-12">
+            <h3 className="text-3xl md:text-4xl font-bold mb-4 gradient-text">
+              Выберите свой тариф
+            </h3>
+            <p className="text-foreground/70 text-lg">
+              Начните бесплатно или выберите план для профессионалов
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+            <Card className="p-8 bg-card/50 backdrop-blur-sm border-border/50 hover:border-primary/30 transition-all relative">
+              <div className="space-y-6">
+                <div>
+                  <h4 className="text-2xl font-bold mb-2">Free</h4>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-4xl font-bold">0₽</span>
+                    <span className="text-foreground/60">/месяц</span>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="flex items-start gap-2">
+                    <Icon name="Check" size={20} className="text-primary mt-0.5" />
+                    <span className="text-sm">5 треков в месяц</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <Icon name="Check" size={20} className="text-primary mt-0.5" />
+                    <span className="text-sm">До 10 минут</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <Icon name="Check" size={20} className="text-primary mt-0.5" />
+                    <span className="text-sm">MP3 экспорт</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <Icon name="Check" size={20} className="text-primary mt-0.5" />
+                    <span className="text-sm">4 инструмента</span>
+                  </div>
+                </div>
+
+                <Button variant="outline" className="w-full">
+                  Начать бесплатно
+                </Button>
+              </div>
+            </Card>
+
+            <Card className="p-8 bg-gradient-to-b from-primary/20 to-card/50 backdrop-blur-sm border-primary/50 hover:border-primary transition-all relative scale-105 glow-purple">
+              <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground">
+                Популярный
+              </Badge>
+              <div className="space-y-6">
+                <div>
+                  <h4 className="text-2xl font-bold mb-2">Pro</h4>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-4xl font-bold">990₽</span>
+                    <span className="text-foreground/60">/месяц</span>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="flex items-start gap-2">
+                    <Icon name="Check" size={20} className="text-primary mt-0.5" />
+                    <span className="text-sm">100 треков в месяц</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <Icon name="Check" size={20} className="text-primary mt-0.5" />
+                    <span className="text-sm">Без ограничений по длине</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <Icon name="Check" size={20} className="text-primary mt-0.5" />
+                    <span className="text-sm">WAV, FLAC экспорт</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <Icon name="Check" size={20} className="text-primary mt-0.5" />
+                    <span className="text-sm">До 8 инструментов</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <Icon name="Check" size={20} className="text-primary mt-0.5" />
+                    <span className="text-sm">Приоритетная обработка</span>
+                  </div>
+                </div>
+
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button 
+                      className="w-full bg-primary hover:bg-primary/90 glow-purple"
+                      onClick={() => setSelectedPlan('pro')}
+                    >
+                      Выбрать Pro
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Оплата Pro</DialogTitle>
+                      <DialogDescription>
+                        Выберите удобный способ оплаты
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                      <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+                        <div>
+                          <p className="font-semibold">Pro план</p>
+                          <p className="text-sm text-foreground/60">Ежемесячная подписка</p>
+                        </div>
+                        <p className="text-2xl font-bold">990₽</p>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Button className="w-full justify-start gap-3 h-auto py-4">
+                          <div className="flex items-center justify-center w-8 h-8 bg-white rounded">
+                            <Icon name="CreditCard" size={20} className="text-black" />
+                          </div>
+                          <div className="text-left">
+                            <p className="font-medium">Банковская карта</p>
+                            <p className="text-xs text-foreground/60">Visa, MasterCard, МИР</p>
+                          </div>
+                        </Button>
+
+                        <Button variant="outline" className="w-full justify-start gap-3 h-auto py-4">
+                          <div className="flex items-center justify-center w-8 h-8 bg-[#6B4FBB] rounded">
+                            <span className="text-white font-bold text-xs">ЮM</span>
+                          </div>
+                          <div className="text-left">
+                            <p className="font-medium">ЮMoney</p>
+                            <p className="text-xs text-foreground/60">Яндекс кошелёк</p>
+                          </div>
+                        </Button>
+
+                        <Button variant="outline" className="w-full justify-start gap-3 h-auto py-4">
+                          <div className="flex items-center justify-center w-8 h-8 bg-[#0088CC] rounded">
+                            <Icon name="Send" size={16} className="text-white" />
+                          </div>
+                          <div className="text-left">
+                            <p className="font-medium">Telegram Stars</p>
+                            <p className="text-xs text-foreground/60">Оплата через Telegram</p>
+                          </div>
+                        </Button>
+
+                        <Button variant="outline" className="w-full justify-start gap-3 h-auto py-4">
+                          <div className="flex items-center justify-center w-8 h-8 bg-[#F7931A] rounded">
+                            <Icon name="Bitcoin" size={16} className="text-white" />
+                          </div>
+                          <div className="text-left">
+                            <p className="font-medium">Криптовалюта</p>
+                            <p className="text-xs text-foreground/60">BTC, ETH, USDT</p>
+                          </div>
+                        </Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            </Card>
+
+            <Card className="p-8 bg-card/50 backdrop-blur-sm border-border/50 hover:border-secondary/50 transition-all relative">
+              <div className="space-y-6">
+                <div>
+                  <h4 className="text-2xl font-bold mb-2">Studio</h4>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-4xl font-bold">2990₽</span>
+                    <span className="text-foreground/60">/месяц</span>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="flex items-start gap-2">
+                    <Icon name="Check" size={20} className="text-primary mt-0.5" />
+                    <span className="text-sm">Безлимитные треки</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <Icon name="Check" size={20} className="text-primary mt-0.5" />
+                    <span className="text-sm">Без ограничений</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <Icon name="Check" size={20} className="text-primary mt-0.5" />
+                    <span className="text-sm">Все форматы</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <Icon name="Check" size={20} className="text-primary mt-0.5" />
+                    <span className="text-sm">16 инструментов</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <Icon name="Check" size={20} className="text-primary mt-0.5" />
+                    <span className="text-sm">API доступ</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <Icon name="Check" size={20} className="text-primary mt-0.5" />
+                    <span className="text-sm">Поддержка 24/7</span>
+                  </div>
+                </div>
+
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      className="w-full border-secondary/50 hover:bg-secondary/10"
+                      onClick={() => setSelectedPlan('studio')}
+                    >
+                      Выбрать Studio
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Оплата Studio</DialogTitle>
+                      <DialogDescription>
+                        Выберите удобный способ оплаты
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                      <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+                        <div>
+                          <p className="font-semibold">Studio план</p>
+                          <p className="text-sm text-foreground/60">Ежемесячная подписка</p>
+                        </div>
+                        <p className="text-2xl font-bold">2990₽</p>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Button className="w-full justify-start gap-3 h-auto py-4">
+                          <div className="flex items-center justify-center w-8 h-8 bg-white rounded">
+                            <Icon name="CreditCard" size={20} className="text-black" />
+                          </div>
+                          <div className="text-left">
+                            <p className="font-medium">Банковская карта</p>
+                            <p className="text-xs text-foreground/60">Visa, MasterCard, МИР</p>
+                          </div>
+                        </Button>
+
+                        <Button variant="outline" className="w-full justify-start gap-3 h-auto py-4">
+                          <div className="flex items-center justify-center w-8 h-8 bg-[#6B4FBB] rounded">
+                            <span className="text-white font-bold text-xs">ЮM</span>
+                          </div>
+                          <div className="text-left">
+                            <p className="font-medium">ЮMoney</p>
+                            <p className="text-xs text-foreground/60">Яндекс кошелёк</p>
+                          </div>
+                        </Button>
+
+                        <Button variant="outline" className="w-full justify-start gap-3 h-auto py-4">
+                          <div className="flex items-center justify-center w-8 h-8 bg-[#0088CC] rounded">
+                            <Icon name="Send" size={16} className="text-white" />
+                          </div>
+                          <div className="text-left">
+                            <p className="font-medium">Telegram Stars</p>
+                            <p className="text-xs text-foreground/60">Оплата через Telegram</p>
+                          </div>
+                        </Button>
+
+                        <Button variant="outline" className="w-full justify-start gap-3 h-auto py-4">
+                          <div className="flex items-center justify-center w-8 h-8 bg-[#F7931A] rounded">
+                            <Icon name="Bitcoin" size={16} className="text-white" />
+                          </div>
+                          <div className="text-left">
+                            <p className="font-medium">Криптовалюта</p>
+                            <p className="text-xs text-foreground/60">BTC, ETH, USDT</p>
+                          </div>
+                        </Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            </Card>
           </div>
         </div>
       </section>
